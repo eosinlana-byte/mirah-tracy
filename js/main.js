@@ -9,6 +9,35 @@ document.querySelectorAll('a[href^="#"]').forEach((a) => {
   });
 });
 
+const folio = document.getElementById("folio");
+if (folio) {
+  fetch("/api/portfolio")
+    .then((r) => r.json())
+    .then((data) => {
+      const items = data.items || [];
+      folio.innerHTML = items.map((i) =>
+        "<figure><img src=\"" + i.image + "\" alt=\"" + (i.title || "") + "\" /><figcaption>" + (i.title || "") + "</figcaption></figure>"
+      ).join("");
+    })
+    .catch(() => {});
+}
+
+const quotes = document.getElementById("quotes");
+if (quotes) {
+  fetch("/api/testimonials")
+    .then((r) => r.json())
+    .then((data) => {
+      const items = data.items || [];
+      quotes.innerHTML = items.map((i) => {
+        const img = i.image ? "<img src=\"" + i.image + "\" alt=\"\" />" : "";
+        const q = i.quote ? "<p>" + i.quote + "</p>" : "<p></p>";
+        const n = i.name ? "<footer>" + i.name + "</footer>" : "<footer></footer>";
+        return "<blockquote>" + img + q + n + "</blockquote>";
+      }).join("");
+    })
+    .catch(() => {});
+}
+
 const form = document.getElementById("form");
 const msg = document.getElementById("formMsg");
 if (form) {
