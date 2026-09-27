@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mirah Tracy Admin</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f6efe6; color: #2a1c2e; margin: 0; }
+    .box { max-width: 420px; margin: 80px auto; background: #fffdf8; padding: 28px; border: 1px solid rgba(74,44,84,.14); border-radius: 16px; }
+    h1 { font-size: 1.4rem; margin: 0 0 18px; }
+    label { display: grid; gap: 6px; font-size: .85rem; font-weight: 600; margin-bottom: 12px; }
+    input { padding: 10px 12px; border: 1px solid rgba(74,44,84,.2); border-radius: 8px; font: inherit; }
+    button { background: #4a2c54; color: #f6efe6; border: 0; padding: 12px 18px; border-radius: 999px; font: inherit; font-weight: 600; cursor: pointer; }
+    .err { color: #a24b2e; min-height: 1.2em; margin-top: 10px; }
+    .wrap { width: min(900px, calc(100% - 32px)); margin: 24px auto; }
+    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .card { background: #fffdf8; border: 1px solid rgba(74,44,84,.14); padding: 16px; margin-bottom: 12px; border-radius: 12px; }
+    .card small { color: #6b5f68; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="box" id="loginBox">
+    <h1>Mira Quil admin</h1>
+    <label>Username <input id="user" autocomplete="username" /></label>
+    <label>Password <input id="pass" type="password" autocomplete="current-password" /></label>
+    <button id="loginBtn" type="button">Log in</button>
+    <p class="err" id="err"></p>
+  </div>
+  <div class="wrap hidden" id="dash">
+    <div class="top">
+      <h1>Enquiries</h1>
+      <button id="outBtn" type="button">Log out</button>
+    </div>
+    <div id="list"></div>
+  </div>
+  <script>
+    const loginBox = document.getElementById("loginBox");
+    const dash = document.getElementById("dash");
+    const err = document.getElementById("err");
+    async function load() {
+      const r = await fetch("/api/enquiries");
+      if (!r.ok) return false;
+      const data = await r.json();
+      const list = document.getElementById("list");
+      if (!data.items.length) {
+        list.innerHTML = "<p>No enquiries yet.</p>";
+      } else {
+        list.innerHTML = data.items.map((i) =>
+          "<div class='card'><strong>" + i.name + "</strong> · " + i.email +
+          "<br><small>" + i.service + " · " + i.at + "</small><p>" + i.message + "</p></div>"
+        ).join("");
+      }
+      return true;
+    }
+    document.getElementById("loginBtn").onclick = async () => {
+      err.textContent = "";
+      const r = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: document.getElementById("user").value, password: document.getElementById("pass").value })
+      });
+      if (!r.ok) { err.textContent = "Wrong login."; return; }
+      loginBox.classList.add("hidden");
+      dash.classList.remove("hidden");
+      load();
+    };
+    document.getElementById("outBtn").onclick = async () => {
+      await fetch("/api/logout", { method: "POST" });
+      location.reload();
+    };
+    load().then((ok) => {
+      if (ok) { loginBox.classList.add("hidden"); dash.classList.remove("hidden"); }
+    });
+  </script>
+</body>
+</html>
