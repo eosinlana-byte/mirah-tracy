@@ -359,6 +359,7 @@ a { color: inherit; }
   flex-direction: column;
   justify-content: space-between;
 }
+.quotes img { width: 100%; height: auto; margin-bottom: 12px; }
 .quotes p {
   font-family: var(--display);
   font-style: italic;
