@@ -4,74 +4,255 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mirah Tracy Admin</title>
+  <meta name="robots" content="noindex" />
   <style>
-    body { font-family: system-ui, sans-serif; background: #f6efe6; color: #2a1c2e; margin: 0; }
-    .box { max-width: 420px; margin: 80px auto; background: #fffdf8; padding: 28px; border: 1px solid rgba(74,44,84,.14); border-radius: 16px; }
-    h1 { font-size: 1.4rem; margin: 0 0 18px; }
-    label { display: grid; gap: 6px; font-size: .85rem; font-weight: 600; margin-bottom: 12px; }
-    input { padding: 10px 12px; border: 1px solid rgba(74,44,84,.2); border-radius: 8px; font: inherit; }
-    button { background: #4a2c54; color: #f6efe6; border: 0; padding: 12px 18px; border-radius: 999px; font: inherit; font-weight: 600; cursor: pointer; }
-    .err { color: #a24b2e; min-height: 1.2em; margin-top: 10px; }
-    .wrap { width: min(900px, calc(100% - 32px)); margin: 24px auto; }
-    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-    .card { background: #fffdf8; border: 1px solid rgba(74,44,84,.14); padding: 16px; margin-bottom: 12px; border-radius: 12px; }
-    .card small { color: #6b5f68; }
-    .hidden { display: none; }
+    :root { --bg:#f6efe6; --ink:#2a1c2e; --plum:#4a2c54; --mute:#6b5f68; --line:rgba(74,44,84,.14); --card:#fffdf8; --gold:#b0894a; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family: system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+    button, input, textarea { font: inherit; }
+    .hidden { display:none !important; }
+    .login { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:24px; }
+    .login .card { width:min(400px,100%); }
+    h1 { font-size:1.35rem; margin-bottom:14px; }
+    label { display:grid; gap:6px; font-size:.82rem; font-weight:600; margin-bottom:12px; }
+    input, textarea { padding:10px 12px; border:1px solid var(--line); border-radius:8px; width:100%; }
+    .btn { background:var(--plum); color:#f6efe6; border:0; padding:10px 16px; border-radius:999px; cursor:pointer; font-weight:600; }
+    .btn--ghost { background:transparent; color:var(--plum); border:1px solid var(--line); }
+    .btn--danger { background:#8a3030; }
+    .err { color:#a24b2e; min-height:1.2em; margin-top:8px; }
+    .app { display:grid; grid-template-columns:220px 1fr; min-height:100vh; }
+    .side { background:var(--plum); color:#f6efe6; padding:22px 14px; display:flex; flex-direction:column; gap:8px; }
+    .side button { text-align:left; background:transparent; color:#e4d6ea; border:0; padding:10px 12px; border-radius:8px; cursor:pointer; }
+    .side button.on, .side button:hover { background:rgba(255,255,255,.1); color:#fff; }
+    .main { padding:24px; }
+    .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; }
+    table { width:100%; border-collapse:collapse; background:var(--card); }
+    th, td { padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:middle; font-size:.9rem; }
+    .thumb { width:48px; height:72px; object-fit:cover; background:#ddd; }
+    .thumb--sq { width:64px; height:48px; }
+    .row { display:flex; gap:8px; }
+    .modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:16px; }
+    .modal.open { display:flex; }
+    .modal .bg { position:absolute; inset:0; background:rgba(42,28,46,.5); }
+    .modal .card { position:relative; width:min(480px,100%); max-height:90vh; overflow:auto; }
+    .toast { position:fixed; bottom:16px; right:16px; background:var(--plum); color:#fff; padding:10px 14px; border-radius:8px; display:none; }
+    .toast.show { display:block; }
+    @media (max-width:800px) { .app { grid-template-columns:1fr; } .side { flex-direction:row; flex-wrap:wrap; } }
   </style>
 </head>
 <body>
-  <div class="box" id="loginBox">
-    <h1>Mira Quil admin</h1>
-    <label>Username <input id="user" autocomplete="username" /></label>
-    <label>Password <input id="pass" type="password" autocomplete="current-password" /></label>
-    <button id="loginBtn" type="button">Log in</button>
-    <p class="err" id="err"></p>
+  <div class="login" id="loginView">
+    <form class="card" id="loginForm">
+      <h1>Mirah Tracy admin</h1>
+      <label>Username <input id="user" value="admin" autocomplete="username" /></label>
+      <label>Password <input id="pass" type="password" autocomplete="current-password" /></label>
+      <button class="btn" type="submit">Log in</button>
+      <p class="err" id="loginErr"></p>
+    </form>
   </div>
-  <div class="wrap hidden" id="dash">
-    <div class="top">
-      <h1>Enquiries</h1>
-      <button id="outBtn" type="button">Log out</button>
-    </div>
-    <div id="list"></div>
+
+  <div class="app hidden" id="appView">
+    <aside class="side">
+      <strong>Mirah Tracy</strong>
+      <button data-tab="portfolio" class="on">Portfolio</button>
+      <button data-tab="testimonials">Testimonials</button>
+      <button data-tab="enquiries">Enquiries</button>
+      <button id="outBtn" style="margin-top:auto">Log out</button>
+    </aside>
+    <main class="main">
+      <section id="tab-portfolio">
+        <div class="top"><h1>Portfolio</h1><button class="btn" id="addPort">Add work</button></div>
+        <table><thead><tr><th></th><th>Title</th><th></th></tr></thead><tbody id="portBody"></tbody></table>
+      </section>
+      <section id="tab-testimonials" class="hidden">
+        <div class="top"><h1>Testimonials</h1><button class="btn" id="addTesti">Add</button></div>
+        <table><thead><tr><th></th><th>Quote</th><th>Name</th><th></th></tr></thead><tbody id="testiBody"></tbody></table>
+      </section>
+      <section id="tab-enquiries" class="hidden">
+        <div class="top"><h1>Enquiries</h1></div>
+        <div id="enqList"></div>
+      </section>
+    </main>
   </div>
+
+  <div class="modal" id="portModal">
+    <div class="bg" data-close></div>
+    <form class="card" id="portForm">
+      <h1 id="portTitle">Add work</h1>
+      <input type="hidden" id="portId" />
+      <label>Title <input id="portName" /></label>
+      <label>Image <input id="portFile" type="file" accept="image/*" /></label>
+      <p class="err" id="portErr"></p>
+      <div class="row"><button class="btn" type="submit">Save</button><button class="btn btn--ghost" type="button" data-close>Cancel</button></div>
+    </form>
+  </div>
+
+  <div class="modal" id="testiModal">
+    <div class="bg" data-close></div>
+    <form class="card" id="testiForm">
+      <h1 id="testiTitle">Add testimonial</h1>
+      <input type="hidden" id="testiId" />
+      <label>Quote <textarea id="testiQuote" rows="4"></textarea></label>
+      <label>Name <input id="testiName" /></label>
+      <label>Screenshot (optional) <input id="testiFile" type="file" accept="image/*" /></label>
+      <p class="err" id="testiErr"></p>
+      <div class="row"><button class="btn" type="submit">Save</button><button class="btn btn--ghost" type="button" data-close>Cancel</button></div>
+    </form>
+  </div>
+  <div class="toast" id="toast"></div>
+
   <script>
-    const loginBox = document.getElementById("loginBox");
-    const dash = document.getElementById("dash");
-    const err = document.getElementById("err");
-    async function load() {
-      const r = await fetch("/api/enquiries");
-      if (!r.ok) return false;
-      const data = await r.json();
-      const list = document.getElementById("list");
-      if (!data.items.length) {
-        list.innerHTML = "<p>No enquiries yet.</p>";
-      } else {
-        list.innerHTML = data.items.map((i) =>
-          "<div class='card'><strong>" + i.name + "</strong> · " + i.email +
-          "<br><small>" + i.service + " · " + i.at + "</small><p>" + i.message + "</p></div>"
-        ).join("");
-      }
-      return true;
-    }
-    document.getElementById("loginBtn").onclick = async () => {
-      err.textContent = "";
-      const r = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: document.getElementById("user").value, password: document.getElementById("pass").value })
+    const loginView = document.getElementById("loginView");
+    const appView = document.getElementById("appView");
+    const toast = document.getElementById("toast");
+    function showToast(t) { toast.textContent = t; toast.classList.add("show"); setTimeout(() => toast.classList.remove("show"), 2200); }
+    function compress(file) {
+      return new Promise((resolve) => {
+        if (!file) return resolve(null);
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          const max = 1400;
+          let w = img.width, h = img.height;
+          if (w > max) { h = h * max / w; w = max; }
+          const c = document.createElement("canvas");
+          c.width = w; c.height = h;
+          c.getContext("2d").drawImage(img, 0, 0, w, h);
+          c.toBlob((b) => { URL.revokeObjectURL(url); resolve(b ? new File([b], "img.jpg", { type: "image/jpeg" }) : file); }, "image/jpeg", 0.82);
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+        img.src = url;
       });
-      if (!r.ok) { err.textContent = "Wrong login."; return; }
-      loginBox.classList.add("hidden");
-      dash.classList.remove("hidden");
-      load();
+    }
+    async function api(url, opt) {
+      const r = await fetch(url, opt);
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || "Error");
+      return data;
+    }
+    document.getElementById("loginForm").onsubmit = async (e) => {
+      e.preventDefault();
+      document.getElementById("loginErr").textContent = "";
+      try {
+        await api("/api/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: user.value, password: pass.value }) });
+        loginView.classList.add("hidden");
+        appView.classList.remove("hidden");
+        loadPort(); loadTesti(); loadEnq();
+      } catch (err) { document.getElementById("loginErr").textContent = "Wrong login."; }
     };
-    document.getElementById("outBtn").onclick = async () => {
-      await fetch("/api/logout", { method: "POST" });
-      location.reload();
-    };
-    load().then((ok) => {
-      if (ok) { loginBox.classList.add("hidden"); dash.classList.remove("hidden"); }
+    document.getElementById("outBtn").onclick = async () => { await fetch("/api/logout", { method: "POST" }); location.reload(); };
+    document.querySelectorAll(".side [data-tab]").forEach((b) => {
+      b.onclick = () => {
+        document.querySelectorAll(".side [data-tab]").forEach((x) => x.classList.remove("on"));
+        b.classList.add("on");
+        ["portfolio", "testimonials", "enquiries"].forEach((t) => {
+          document.getElementById("tab-" + t).classList.toggle("hidden", t !== b.dataset.tab);
+        });
+      };
     });
+    document.querySelectorAll("[data-close]").forEach((el) => {
+      el.onclick = () => document.querySelectorAll(".modal").forEach((m) => m.classList.remove("open"));
+    });
+
+    async function loadPort() {
+      const data = await api("/api/admin/portfolio");
+      document.getElementById("portBody").innerHTML = data.items.map((i) =>
+        "<tr><td>" + (i.image ? "<img class='thumb' src='" + i.image + "'>" : "") + "</td><td>" + (i.title || "") +
+        "</td><td class='row'><button class='btn btn--ghost' data-edit='" + i.id + "' data-title='" + encodeURIComponent(i.title || "") +
+        "'>Edit</button><button class='btn btn--danger' data-del='" + i.id + "'>Delete</button></td></tr>"
+      ).join("") || "<tr><td colspan='3'>No work yet.</td></tr>";
+      document.querySelectorAll("#portBody [data-edit]").forEach((b) => b.onclick = () => openPort(b.dataset.edit, decodeURIComponent(b.dataset.title)));
+      document.querySelectorAll("#portBody [data-del]").forEach((b) => b.onclick = async () => {
+        if (!confirm("Delete this?")) return;
+        await api("/api/admin/portfolio/" + b.dataset.del, { method: "DELETE" });
+        showToast("Deleted"); loadPort();
+      });
+    }
+    function openPort(id, title) {
+      portId.value = id || "";
+      portName.value = title || "";
+      portFile.value = "";
+      portErr.textContent = "";
+      document.getElementById("portTitle").textContent = id ? "Edit work" : "Add work";
+      document.getElementById("portModal").classList.add("open");
+    }
+    document.getElementById("addPort").onclick = () => openPort("", "");
+    document.getElementById("portForm").onsubmit = async (e) => {
+      e.preventDefault();
+      portErr.textContent = "";
+      const fd = new FormData();
+      fd.append("title", portName.value);
+      const f = await compress(portFile.files[0]);
+      if (f) fd.append("image", f);
+      try {
+        const id = portId.value;
+        await api(id ? "/api/admin/portfolio/" + id : "/api/admin/portfolio", { method: "POST", body: fd });
+        document.getElementById("portModal").classList.remove("open");
+        showToast("Saved"); loadPort();
+      } catch (err) { portErr.textContent = err.message; }
+    };
+
+    async function loadTesti() {
+      const data = await api("/api/admin/testimonials");
+      document.getElementById("testiBody").innerHTML = data.items.map((i) =>
+        "<tr><td>" + (i.image ? "<img class='thumb thumb--sq' src='" + i.image + "'>" : "") + "</td><td>" + (i.quote || "") +
+        "</td><td>" + (i.name || "") + "</td><td class='row'><button class='btn btn--ghost' data-e='" + i.id +
+        "' data-q='" + encodeURIComponent(i.quote || "") + "' data-n='" + encodeURIComponent(i.name || "") +
+        "'>Edit</button><button class='btn btn--danger' data-d='" + i.id + "'>Delete</button></td></tr>"
+      ).join("") || "<tr><td colspan='4'>None yet.</td></tr>";
+      document.querySelectorAll("#testiBody [data-e]").forEach((b) => b.onclick = () => openTesti(b.dataset.e, decodeURIComponent(b.dataset.q), decodeURIComponent(b.dataset.n)));
+      document.querySelectorAll("#testiBody [data-d]").forEach((b) => b.onclick = async () => {
+        if (!confirm("Delete this?")) return;
+        await api("/api/admin/testimonials/" + b.dataset.d, { method: "DELETE" });
+        showToast("Deleted"); loadTesti();
+      });
+    }
+    function openTesti(id, q, n) {
+      testiId.value = id || "";
+      testiQuote.value = q || "";
+      testiName.value = n || "";
+      testiFile.value = "";
+      testiErr.textContent = "";
+      document.getElementById("testiTitle").textContent = id ? "Edit testimonial" : "Add testimonial";
+      document.getElementById("testiModal").classList.add("open");
+    }
+    document.getElementById("addTesti").onclick = () => openTesti("", "", "");
+    document.getElementById("testiForm").onsubmit = async (e) => {
+      e.preventDefault();
+      testiErr.textContent = "";
+      const fd = new FormData();
+      fd.append("quote", testiQuote.value);
+      fd.append("name", testiName.value);
+      const f = await compress(testiFile.files[0]);
+      if (f) fd.append("image", f);
+      try {
+        const id = testiId.value;
+        await api(id ? "/api/admin/testimonials/" + id : "/api/admin/testimonials", { method: "POST", body: fd });
+        document.getElementById("testiModal").classList.remove("open");
+        showToast("Saved"); loadTesti();
+      } catch (err) { testiErr.textContent = err.message; }
+    };
+
+    async function loadEnq() {
+      const data = await api("/api/admin/enquiries");
+      document.getElementById("enqList").innerHTML = (data.items || []).map((i) =>
+        "<div class='card' style='margin-bottom:10px'><strong>" + i.name + "</strong> · " + i.email +
+        "<br><small>" + (i.service || "") + " · " + (i.created_at || "") + "</small><p>" + (i.message || "") +
+        "</p><button class='btn btn--danger' data-x='" + i.id + "'>Delete</button></div>"
+      ).join("") || "<p>No enquiries yet.</p>";
+      document.querySelectorAll("#enqList [data-x]").forEach((b) => b.onclick = async () => {
+        if (!confirm("Delete?")) return;
+        await api("/api/admin/enquiries/" + b.dataset.x, { method: "DELETE" });
+        loadEnq();
+      });
+    }
+
+    api("/api/admin/portfolio").then(() => {
+      loginView.classList.add("hidden");
+      appView.classList.remove("hidden");
+      loadPort(); loadTesti(); loadEnq();
+    }).catch(() => {});
   </script>
 </body>
 </html>
