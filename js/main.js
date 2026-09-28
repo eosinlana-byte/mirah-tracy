@@ -9,7 +9,39 @@ document.querySelectorAll('a[href^="#"]').forEach((a) => {
   });
 });
 
+const lightbox = document.getElementById("lightbox");
+const lightboxImg = document.getElementById("lightboxImg");
+const lightboxCap = document.getElementById("lightboxCap");
+function openLight(src, cap) {
+  if (!lightbox || !src) return;
+  lightboxImg.src = src;
+  lightboxImg.alt = cap || "";
+  lightboxCap.textContent = cap || "";
+  lightbox.hidden = false;
+}
+function closeLight() {
+  if (!lightbox) return;
+  lightbox.hidden = true;
+  lightboxImg.src = "";
+}
+if (lightbox) {
+  lightbox.addEventListener("click", (e) => {
+    if (e.target === lightbox || e.target.classList.contains("lightbox__close")) closeLight();
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeLight(); });
+}
+
 const folio = document.getElementById("folio");
+function bindFolio() {
+  if (!folio) return;
+  folio.querySelectorAll("figure").forEach((fig) => {
+    fig.addEventListener("click", () => {
+      const img = fig.querySelector("img");
+      const cap = fig.querySelector("figcaption");
+      if (img) openLight(img.src, cap ? cap.textContent : img.alt);
+    });
+  });
+}
 if (folio) {
   fetch("/api/portfolio")
     .then((r) => r.json())
@@ -18,8 +50,9 @@ if (folio) {
       folio.innerHTML = items.map((i) =>
         "<figure><img src=\"" + i.image + "\" alt=\"" + (i.title || "") + "\" /><figcaption>" + (i.title || "") + "</figcaption></figure>"
       ).join("");
+      bindFolio();
     })
-    .catch(() => {});
+    .catch(() => bindFolio());
 }
 
 const quotes = document.getElementById("quotes");
